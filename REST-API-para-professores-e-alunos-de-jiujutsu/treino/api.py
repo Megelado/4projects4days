@@ -1,6 +1,6 @@
 from ninja import Router
 from ninja.errors import HttpError
-from .schemas import AlunoSchema, ProgressoAlunoSchema, AulaRealizadaSchema
+from .schemas import AlunoSchema, UpdateAlunoSchema, ProgressoAlunoSchema, AulaRealizadaSchema
 from .models import Alunos, AulasConcluidas
 from typing import List
 from .graduacao import * 
@@ -65,8 +65,8 @@ def aula_realizada(request, aula_realizada: AulaRealizadaSchema):
 
     return  200, f"Aula realizada com o aluno {aluno.nome}"
 
-@treino_router.put('/alunos/{aluno_id}', response=AlunoSchema)
-def update_aluno(request, aluno_id: int, aluno_data: AlunoSchema):
+@treino_router.put('/alunos/{aluno_id}', response=UpdateAlunoSchema)
+def update_aluno(request, aluno_id: int, aluno_data: UpdateAlunoSchema):
     aluno = Alunos.objects.get(id=aluno_id)
     idade = date.today() - aluno.data_nascimento
 

@@ -45,13 +45,15 @@ def desativar_conta(id):
         statement = select(Conta).where(Conta.id==id)
         #Executa a consulta e pega o primeiro resultado, pois id é único pois é chave primária
         conta = session.exec(statement).first()
+        
         #Se a conta que deve ser desativada tiver dinheiro dará um ValueError
         if conta.valor > 0:
             raise ValueError('Essa conta ainda possui saldo.')
-        #Caso não tenha dinheiro na conta ela será desativada
+            #Caso não tenha dinheiro na conta ela será desativada
         conta.status = Status.INATIVO
         #Agora eu confirmo/salvo essas alterações
         session.commit()
+        
 
 
 #Definimos função tranferi_saldo(o id da conta que o dinheiro será tranferido, o id da conta que receberá a transferência, o valor que será tranferido)
@@ -62,13 +64,22 @@ def tranferir_saldo(id_conta_saida, id_conta_entrada, valor):
         statement = select(Conta).where(Conta.id==id_conta_saida)
         #Pego o primeiro id
         conta_saida = session.exec(statement).first()
+
+        if conta_saida.status == Status.INATIVO:
+            print("Conta de saída está inativa!")
+            return
         #Se o dinheiro na conta for menor que o valor a ser tranferido a tranferência será interrompida
+
         if conta_saida.valor < valor:
             raise ValueError('Saldo insuficiente!')
         #Faço uma consulta para pegar o id da conta que receberá a transferência
         statement = select(Conta).where(Conta.id==id_conta_entrada)
         #Pego o primeiro id
         conta_entrada = session.exec(statement).first()
+
+        if conta_entrada.status == Status.INATIVO:
+            print("Conta de entrada está inativa!")
+            return
 
         #O dinheiro da tranferência será diminuido no saldo da conta de saída
         conta_saida.valor -= valor
@@ -86,8 +97,10 @@ def movimentar_dinheiro(historico: Historico):
         statement = select(Conta).where(Conta.id==historico.conta_id)
         #Pegar o primeiro
         conta = session.exec(statement).first()
-        #TO DO: VVALIDAR SE A CONTA ESTÁ ATIVA
-
+        #Validar se está inativa a conta
+        if conta.status == Status.INATIVO:
+            print("Não é possivel movimentar dinheiro em uma conta inativa!")
+            return
         #Se historico for de entrada
         if historico.tipo == Tipos.ENTRADA:
             #A conta receberá o valor que estiver no historio
@@ -114,7 +127,7 @@ def total_contas():
     #Conexão ao servidor
     with Session(engine) as session:
         #Faz uma cosulta de todas as contas
-        statement = select(Conta)
+        statement = select(Conta).where(Conta.status == Status.ATIVO)
         #Pega todos esses dados
         contas = session.exec(statement).all()
     
@@ -136,7 +149,8 @@ def buscar_historico_entre_datas(data_inicio: date, data_fim: date):
         #Consultar no historico por data ser maior ou igual a data_inicio, e ser menor ou igual a data_fim
         statement = select(Historico).where(
             Historico.data >= data_inicio,
-            Historico.data <= data_fim
+            Historico.data <= data_fim,
+            Historico.conta.has(status=Status.ATIVO)
         )
         #Pego esses dados
         resultados = session.exec(statement).all()

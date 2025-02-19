@@ -1,11 +1,13 @@
 from models import *
 from view import *
 from datetime import date, datetime
+from models import Conta, engine, Bancos, Status, Historico, Tipos
 
 class UI:
     def start(self):
         while True:
             print('''
+            [0] -> Listar contas
             [1] -> Criar conta
             [2] -> Desativar conta
             [3] -> Transferir dinheiro
@@ -13,26 +15,45 @@ class UI:
             [5] -> Total contas
             [6] -> Filtrar histórico
             [7] -> Gráfico
+                  qualquer outra opção -> sair do programa
 
         ''')
-            choice = int(input('Escolha uma opção: '))
+            try:
+                choice = int(input('Escolha uma opção: '))
 
-            if choice == 1:
-                self._criar_conta()
-            elif choice == 2:
-                self._desativar_conta()
-            elif choice == 3:
-                self._transferir_saldo()
-            elif choice == 4:
-                self._movimentar_dinheiro()
-            elif choice == 5:
-                self._total_contas()
-            elif choice == 6:
-                self._filtrar_movimentacoes()
-            elif choice == 7:
-                self._criar_grafico()
-            else:
+                if choice == 0:
+                    self._listar_contas()
+                elif choice == 1:
+                    self._criar_conta()
+                elif choice == 2:
+                    self._desativar_conta()
+                elif choice == 3:
+                    self._transferir_saldo()
+                elif choice == 4:
+                    self._movimentar_dinheiro()
+                elif choice == 5:
+                    self._total_contas()
+                elif choice == 6:
+                    self._filtrar_movimentacoes()
+                elif choice == 7:
+                    self._criar_grafico()
+                else:
+                    break
+            except ValueError:
+                print(f"Saindo do programa...")
                 break
+
+    def _listar_contas(self):
+        contas = listar_contas()
+
+        if not contas:
+            print("Nenhuma conta cadastrada!")
+            return
+        print("Lista de contas: ")
+        for conta in contas:
+            status = "Ativo" if conta.status == Status.ATIVO else  "Inativo"
+            print(f"ID: {conta.id} | Banco: {conta.banco.value} | Saldo: R$ {conta.valor: .2f} | Status: {status}")
+
 
     def _criar_conta(self):
         print('Digite o nome de algum dos bancos abaixo:')
@@ -54,7 +75,6 @@ class UI:
                 print(f'{i.id} -> {i.banco.value} -> R$ {i.valor}')
         
         id_conta = int(input(''))
-
         try:
             desativar_conta(id_conta)
             print('Conta desativada com sucesso')
