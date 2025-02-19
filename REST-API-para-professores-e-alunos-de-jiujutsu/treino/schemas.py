@@ -6,13 +6,13 @@ from datetime import date
 class AlunoSchema(ModelSchema):
     class Meta:
         model = Alunos
-        fields = ['nome', 'email', 'faixa', 'data_nascimento']
+        fields = ['id', 'nome', 'email', 'faixa', 'data_nascimento']
 
 class UpdateAlunoSchema(ModelSchema):
     data_nascimento: Optional[date] = None
     class Meta:
         model = Alunos
-        fields = ['nome', 'email', 'faixa', 'data_nascimento']
+        fields = ['id','nome', 'email', 'faixa', 'data_nascimento']
 
 class ProgressoAlunoSchema(Schema):
     email: str

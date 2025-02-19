@@ -129,16 +129,35 @@ def main(page: ft.Page):
     progress_tab = ft.Column([email_progress_field, progress_result, progress_button], scroll=True)
 
     # Atualizar Aluno
+    
     # TO DO esses id devem ser um select
-    id_aluno_field = ft.TextField(label="ID do aluno")
+    id_aluno_field = ft.Dropdown(label="Selecione o ID do aluno", options=[])
     nome_update_field = ft.TextField(label="Nome")
     email_update_field = ft.TextField(label="Email")
     faixa_update_field = ft.TextField(label="Faixa")
     data_nascimento_update_field = ft.TextField(label="Data de nascimento (YYYY-MM-DD)")
     update_result = ft.Text()
 
+    def carregar_alunos():
+        """Busca os alunos do banco e preenche o dropdown."""
+        response = requests.get(API_BASE_URL + "/aluno/")  # Ajuste se necessário
+        
+        if response.status_code == 200:
+            alunos = response.json()
+            print("Resposta da API: ", alunos)
+            if isinstance(alunos, list) and all("id" in aluno and "nome" in aluno for aluno in alunos):
+                id_aluno_field.options = [
+                    ft.dropdown.Option(str(aluno["id"]), f"{aluno['id']} - {aluno['nome']}") 
+                    for aluno in alunos
+                ]
+                page.update()
+            else:
+                print("Erro: Estrutura de resposta inesperada")
+        else:
+            print("Erro ao buscar alunos:", response.text)
+
     def atualizar_aluno_click(e):
-        aluno_id = id_aluno_field.value
+        aluno_id = id_aluno_field.value  # Pegando o ID do dropdown
         if not aluno_id:
             update_result.value = "ID do aluno é obrigatório"
         else:
@@ -156,6 +175,9 @@ def main(page: ft.Page):
                 update_result.value = f"Aluno atualizado: {aluno}"
             else:
                 update_result.value = f"Erro: {response.text}"
+
+    # Chamar a função para carregar os alunos ao iniciar a aba
+    carregar_alunos()
 
 
     update_button = ft.ElevatedButton(text="Atualizar aluno", on_click=atualizar_aluno_click)
